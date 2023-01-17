@@ -4,21 +4,17 @@ include '../login_function.php';
 
 cek_login();
 
-$id_fasilitas = $_GET['id_fasilitas'];
-$result = tampilFasilitasPerId($id_fasilitas);
-$row = mysqli_fetch_assoc($result);
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $nama_fasilitas = $_POST['nama_fasilitas'];
-    $kategori = $_POST['kategori'];
-    $kapasitas = $_POST['kapasitas'];
-    $lokasi = $_POST['lokasi'];
-    $status = $_POST['status'];
+    $id_fasilitas = $_POST['id_fasilitas'];
+    $nim = $_POST['nim'];
+    $waktu_mulai = $_POST['waktu_mulai'];
+    $waktu_selesai = $_POST['waktu_selesai'];
+    $status = "Dipesan";
 
-    if (ubahFasilitas($id_fasilitas, $nama_fasilitas, $kategori, $kapasitas, $lokasi, $status)) {
-        echo "<script>alert('Data berhasil diubah!'); location.href = 'index.php'</script>";
+    if (tambahBooking($id_fasilitas, $nim, $waktu_mulai, $waktu_selesai, $status)) {
+        echo "<script>alert('Data berhasil ditambahkan!'); location.href = 'index.php'</script>";
     } else {
-        echo "<script>alert('Data gagal diubah!');";
+        echo "<script>alert('Data gagal ditambahkan!');</script>";
     }
 }
 ?>
@@ -30,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Data Fasilitas</title>
+    <title>Data Unit Kerja</title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico" />
     <!-- Core theme CSS (includes Bootstrap)-->
@@ -43,11 +39,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <div class="sidebar-heading border-bottom bg-light">CRUD Fasilitas</div>
             <div class="list-group list-group-flush">
                 <a class="list-group-item list-group-item-action list-group-item-light p-3" href="../">Dashboard</a>
-                <a class="list-group-item list-group-item-action list-group-item-light p-3 active" href="../fasilitas">Fasilitas</a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3" href="../fasilitas">Fasilitas</a>
                 <a class="list-group-item list-group-item-action list-group-item-light p-3" href="../mahasiswa">Mahasiswa</a>
                 <a class="list-group-item list-group-item-action list-group-item-light p-3" href="../ukm">UKM</a>
                 <a class="list-group-item list-group-item-action list-group-item-light p-3" href="../unit-kerja">Unit Kerja</a>
-                <a class="list-group-item list-group-item-action list-group-item-light p-3" href="../booking">Booking</a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3 active" href="../booking">Booking</a>
                 <?php if($_SESSION['role'] == 'admin'){?>
                 <a class="list-group-item list-group-item-action list-group-item-light p-3" href="../pengguna">Pengguna</a>
                 <?php } ?>
@@ -69,33 +65,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </nav>
             <!-- Page content-->
             <div class="container-fluid">
-                <h1 class="mt-4">Ubah Fasilitas</h1>
+                <h1 class="mt-4">Buat Booking Baru</h1>
                 <a href="index.php" class="btn btn-sm btn-danger mb-2 rounded-0">Kembali</a>
                 <form action="" method="post">
                     <div class="row">
                         <div class="form-group col-6">
-                            <label for="nama_fasilitas">Nama Fasilitas:</label>
-                            <input type="text" class="form-control rounded-0" id="nama_fasilitas" name="nama_fasilitas" value="<?= $row['nama_fasilitas']; ?>" required>
-                        </div>
-                        <div class="form-group col-6">
-                            <label for="kategori">Kategori:</label>
-                            <input type="text" class="form-control rounded-0" id="kategori" name="kategori" value="<?= $row['kategori']; ?>" required>
-                        </div>
-                        <div class="form-group col-6">
-                            <label for="kapasitas">Kapasitas:</label>
-                            <input type="number" class="form-control rounded-0" id="kapasitas" name="kapasitas" value="<?= $row['kapasitas']; ?>" required>
-                        </div>
-                        <div class="form-group col-6">
-                            <label for="lokasi">Lokasi:</label>
-                            <input type="text" class="form-control rounded-0" id="lokasi" name="lokasi" value="<?= $row['lokasi']; ?>" required>
-                        </div>
-                        <div class="form-group col-6">
-                            <label for="status">Status:</label>
-                            <select class="form-select rounded-0" aria-label="status" id="status" name="status" required>
+                            <label for="id_fasilitas">Fasilitas:</label>
+                            <select class="form-select rounded-0" aria-label="id_fasilitas" id="id_fasilitas" name="id_fasilitas" required>
                                 <option disabled value="" selected>Pilih</option>
-                                <option value="Tersedia" <?= $row['status']=='Tersedia'? 'selected': '';?>>Tersedia</option>
-                                <option value="Dipesan" <?= $row['status']=='Dipesan'? 'selected': '';?>>Dipesan</option>
+                                <?php 
+                                    include '../fasilitas/functions.php';
+                                    $result = tampilFasilitas();
+                                    while ($row = mysqli_fetch_assoc($result)) 
+                                    {
+                                ?>
+                                <option value="<?= $row['id_fasilitas'];?>"><?= $row['nama_fasilitas'];?></option>
+                                <?php } ?>
                             </select>
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="nim">Mahasiswa:</label>
+                            <select class="form-select rounded-0" aria-label="nim" id="nim" name="nim" required>
+                                <option disabled value="" selected>Pilih</option>
+                                <?php 
+                                    include '../mahasiswa/functions.php';
+                                    $result = tampilMahasiswa();
+                                    while ($row = mysqli_fetch_assoc($result)) 
+                                    {
+                                ?>
+                                <option value="<?= $row['nim'];?>"><?= $row['nama'];?></option>
+                                <?php } ?>
+                            </select>
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="waktu_mulai">Waktu Mulai:</label>
+                            <input type="datetime-local" class="form-control rounded-0" id="waktu_mulai" name="waktu_mulai" required>
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="waktu_selesai">Waktu Selesai:</label>
+                            <input type="datetime-local" class="form-control rounded-0" id="waktu_selesai" name="waktu_selesai" required>
                         </div>
                     </div>
                     <input class="btn btn-primary mt-2 btn-sm rounded-0" type="submit" value="Simpan">

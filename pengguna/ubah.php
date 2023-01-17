@@ -1,7 +1,27 @@
 <?php
+include 'functions.php';
 include '../login_function.php';
+
 cek_login();
+$id_user = $_GET['id_user'];
+$result = tampilUserPerId($id_user);
+$row = mysqli_fetch_assoc($result);
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $nama = $_POST['nama'];
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+    $role = $_POST['role'];
+
+    if (ubahUser($id_user, $nama, $username, $password, $role)) {
+        echo "<script>alert('Data berhasil diubah!'); location.href = 'index.php'</script>";
+    } else {
+        echo "<script>alert('Data gagal diubah!');</script>";
+    }
+
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +29,7 @@ cek_login();
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Data Fasilitas</title>
+    <title>Data Pengguna</title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico" />
     <!-- Core theme CSS (includes Bootstrap)-->
@@ -22,14 +42,12 @@ cek_login();
             <div class="sidebar-heading border-bottom bg-light">CRUD Fasilitas</div>
             <div class="list-group list-group-flush">
                 <a class="list-group-item list-group-item-action list-group-item-light p-3" href="../">Dashboard</a>
-                <a class="list-group-item list-group-item-action list-group-item-light p-3 active" href="#">Fasilitas</a>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3" href="../fasilitas">Fasilitas</a>
                 <a class="list-group-item list-group-item-action list-group-item-light p-3" href="../mahasiswa">Mahasiswa</a>
                 <a class="list-group-item list-group-item-action list-group-item-light p-3" href="../ukm">UKM</a>
                 <a class="list-group-item list-group-item-action list-group-item-light p-3" href="../unit-kerja">Unit Kerja</a>
                 <a class="list-group-item list-group-item-action list-group-item-light p-3" href="../booking">Booking</a>
-                <?php if($_SESSION['role'] == 'admin'){?>
-                <a class="list-group-item list-group-item-action list-group-item-light p-3" href="../pengguna">Pengguna</a>
-                <?php } ?>
+                <a class="list-group-item list-group-item-action list-group-item-light p-3 active" href="../pengguna">Pengguna</a>
             </div>
         </div>
         <!-- Page content wrapper-->
@@ -48,40 +66,33 @@ cek_login();
             </nav>
             <!-- Page content-->
             <div class="container-fluid">
-                <h1 class="mt-4">Data Fasilitas</h1>
-                <a href="tambah.php" class="btn btn-sm btn-primary mb-2 rounded-0">Tambah Fasilitas</a>
-                <table class="table table-striped table-hover">
-                    <tr>
-                        <th>No</th>
-                        <th>Nama Fasilitas</th>
-                        <th>Kategori</th>
-                        <th>Kapasitas</th>
-                        <th>Lokasi</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                    <?php
-                        include 'functions.php';
-                        $result = tampilFasilitas();
-                        $i = 1;
-                        while ($row = mysqli_fetch_assoc($result)) {
-                    ?>
-                    <tr>
-                        <td><?= $i++; ?></td>
-                        <td><?= $row['nama_fasilitas']; ?></td>
-                        <td><?= $row['kategori']; ?></td>
-                        <td><?= $row['kapasitas']; ?></td>
-                        <td><?= $row['lokasi']; ?></td>
-                        <td><?= $row['status']; ?></td>
-                        <td>
-                            <a href="ubah.php?id_fasilitas=<?= $row['id_fasilitas']; ?>" class="btn btn-sm btn-success rounded-0">Ubah</a>  
-                            <a href="#" onclick="hapusFasilitas('<?= $row['id_fasilitas']; ?>')" class="btn btn-sm btn-danger rounded-0">Hapus</a>
-                        </td>
-                    </tr>
-                    <?php
-                    }
-                    ?>
-                </table>
+                <h1 class="mt-4">Ubah Pengguna</h1>
+                <a href="index.php" class="btn btn-sm btn-danger mb-2 rounded-0">Kembali</a>
+                <form action="" method="post">
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label for="nama">Nama:</label>
+                            <input type="text" class="form-control rounded-0" id="nama" name="nama" value="<?= $row['nama'] ;?>" required>
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="username">Username:</label>
+                            <input type="text" class="form-control rounded-0" id="username" name="username" value="<?= $row['username'] ;?>" required>
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="password">Password:</label>
+                            <input type="password" class="form-control rounded-0" id="password" name="password" value="<?= $row['password'] ;?>" required>
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="role">Role:</label>
+                            <select class="form-select rounded-0" aria-label="Role" id="role" name="role" required>
+                                <option disabled value="">Pilih</option>
+                                <option value="admin" <?= $row['role']=='admin'?'selected':'';?>>Admin</option>
+                                <option value="user" <?= $row['role']=='user'?'selected':'';?>>User</option>
+                            </select>
+                        </div>
+                    </div>
+                    <input class="btn btn-primary mt-2 btn-sm rounded-0" type="submit" value="Simpan">
+                </form>
             </div>
         </div>
     </div>
@@ -89,13 +100,6 @@ cek_login();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Core theme JS-->
     <script src="../assets/js/scripts.js"></script>
-    <script>
-    function hapusFasilitas(id_fasilitas) {
-        if (confirm("Apakah Anda yakin ingin menghapus data ini?")) {
-            window.location = "hapus.php?id_fasilitas=" + id_fasilitas;
-        }
-    }
-    </script>
 </body>
 </html>
 
